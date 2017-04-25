@@ -212,7 +212,7 @@ function asyncComponent(config) {
       const Component = es6Resolve(module)
       // eslint-disable-next-line no-nested-ternary
       return Component
-        ? <Component {...this.props} />
+        ? config.render ? config.render(Component) : <Component {...this.props} />
         : LoadingComponent ? <LoadingComponent {...this.props} /> : null
     }
   }
