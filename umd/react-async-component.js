@@ -462,7 +462,7 @@ function asyncComponent(config) {
 
         var Component = es6Resolve(module);
         // eslint-disable-next-line no-nested-ternary
-        return Component ? _react2.default.createElement(Component, this.props) : LoadingComponent ? _react2.default.createElement(LoadingComponent, this.props) : null;
+        return Component ? config.render ? config.render(Component) : _react2.default.createElement(Component, this.props) : LoadingComponent ? _react2.default.createElement(LoadingComponent, this.props) : null;
       }
     }]);
 
