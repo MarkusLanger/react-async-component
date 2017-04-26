@@ -36,7 +36,11 @@ function asyncComponent(config) {
       _config$serverMode = config.serverMode,
       serverMode = _config$serverMode === undefined ? 'resolve' : _config$serverMode,
       LoadingComponent = config.LoadingComponent,
-      ErrorComponent = config.ErrorComponent;
+      ErrorComponent = config.ErrorComponent,
+      _config$getModuleId = config.getModuleId,
+      getModuleId = _config$getModuleId === undefined ? function () {
+    return 'staticKey';
+  } : _config$getModuleId;
 
 
   if (validSSRModes.indexOf(serverMode) === -1) {
@@ -52,7 +56,7 @@ function asyncComponent(config) {
     // This will be use to hold the resolved module allowing sharing across
     // instances.
     // NOTE: When using React Hot Loader this reference will become null.
-    module: null,
+    modules: {},
     // If an error occurred during a resolution it will be stored here.
     error: null,
     // Allows us to share the resolver promise across instances.
@@ -141,7 +145,7 @@ function asyncComponent(config) {
     }, {
       key: 'componentWillMount',
       value: function componentWillMount() {
-        this.setState({ module: sharedState.module });
+        this.setState({ modules: sharedState.modules });
         if (sharedState.error) {
           this.registerErrorState(sharedState.error);
         }
@@ -149,7 +153,7 @@ function asyncComponent(config) {
     }, {
       key: 'componentDidMount',
       value: function componentDidMount() {
-        if (!this.state.module) {
+        if (!this.state.modules[getModuleId(this.props)]) {
           this.resolveModule();
         }
       }
@@ -160,6 +164,7 @@ function asyncComponent(config) {
 
         this.resolving = true;
 
+        var moduleId = getModuleId(this.props);
         return getResolver(this.props).then(function (module) {
           if (_this3.unmounted) {
             return undefined;
@@ -167,9 +172,9 @@ function asyncComponent(config) {
           if (_this3.context.asyncComponents) {
             _this3.context.asyncComponents.resolved(sharedState.id);
           }
-          sharedState.module = module;
+          sharedState.modules[moduleId] = module;
           if (env === 'browser') {
-            _this3.setState({ module: module });
+            _this3.setState({ modules: sharedState.modules });
           }
           _this3.resolving = false;
           return module;
@@ -190,6 +195,16 @@ function asyncComponent(config) {
           _this3.resolving = false;
           return undefined;
         });
+      }
+    }, {
+      key: 'componentWillReceiveProps',
+      value: function componentWillReceiveProps(nextProps) {
+        console.log("module id compare", getModuleId(this.props), getModuleId(nextProps));
+        if (getModuleId(this.props) !== getModuleId(nextProps)) {
+          // FIXME add LoadingComponent logic to show old module for X ms (to prevent flash of content) and then show a loading component till the new module is loaded
+          // FIXME handle case when module id changes while resolving a module
+          this.resolveModule();
+        }
       }
     }, {
       key: 'componentWillUnmount',
@@ -213,7 +228,7 @@ function asyncComponent(config) {
       key: 'render',
       value: function render() {
         var _state = this.state,
-            module = _state.module,
+            modules = _state.modules,
             error = _state.error;
 
         // This is as workaround for React Hot Loader support.  When using
@@ -221,7 +236,7 @@ function asyncComponent(config) {
         // to the component, this will be our signal to know that we need to
         // re-resolve it.
 
-        if (sharedState.module == null && !this.resolving && typeof window !== 'undefined') {
+        if (sharedState.module[getModuleId(this.props)] == null && !this.resolving && typeof window !== 'undefined') {
           this.resolveModule();
         }
 
@@ -229,7 +244,7 @@ function asyncComponent(config) {
           return ErrorComponent ? _react2.default.createElement(ErrorComponent, _extends({}, this.props, { error: error })) : null;
         }
 
-        var Component = es6Resolve(module);
+        var Component = es6Resolve(modules[getModuleId(this.props)]);
         // eslint-disable-next-line no-nested-ternary
         return Component ? config.render ? config.render(Component) : _react2.default.createElement(Component, this.props) : LoadingComponent ? _react2.default.createElement(LoadingComponent, this.props) : null;
       }
