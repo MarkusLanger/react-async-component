@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 const validSSRModes = ['resolve', 'defer', 'boundary']
+const staticModuleId = Symbol();
 
 function asyncComponent(config) {
   const {
@@ -11,7 +12,7 @@ function asyncComponent(config) {
     serverMode = 'resolve',
     LoadingComponent,
     ErrorComponent,
-	getModuleId = () => 'staticKey',
+	getModuleId = () => staticModuleId,
   } = config
 
   if (validSSRModes.indexOf(serverMode) === -1) {
@@ -47,7 +48,7 @@ function asyncComponent(config) {
       : x
 
   const getResolver = (props) => {
-    if (sharedState.resolver == null) {
+    if (sharedState.resolver == null || getModuleId(props) !== staticModuleId) {
       try {
         // Wrap whatever the user returns in Promise.resolve to ensure a Promise
         // is always returned.
