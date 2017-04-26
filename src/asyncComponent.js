@@ -45,12 +45,12 @@ function asyncComponent(config) {
       ? x.default
       : x
 
-  const getResolver = () => {
+  const getResolver = (props) => {
     if (sharedState.resolver == null) {
       try {
         // Wrap whatever the user returns in Promise.resolve to ensure a Promise
         // is always returned.
-        const resolver = resolve()
+        const resolver = resolve(props)
         sharedState.resolver = Promise.resolve(resolver)
       } catch (err) {
         sharedState.resolver = Promise.reject(err)
@@ -137,7 +137,7 @@ function asyncComponent(config) {
     resolveModule() {
       this.resolving = true
 
-      return getResolver()
+      return getResolver(this.props)
         .then((module) => {
           if (this.unmounted) {
             return undefined
