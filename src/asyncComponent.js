@@ -11,6 +11,7 @@ function asyncComponent(config) {
     serverMode = 'resolve',
     LoadingComponent,
     ErrorComponent,
+	getModuleId = () => 'staticKey',
   } = config
 
   if (validSSRModes.indexOf(serverMode) === -1) {
@@ -28,7 +29,7 @@ function asyncComponent(config) {
     // This will be use to hold the resolved module allowing sharing across
     // instances.
     // NOTE: When using React Hot Loader this reference will become null.
-    module: null,
+    modules: {},
     // If an error occurred during a resolution it will be stored here.
     error: null,
     // Allows us to share the resolver promise across instances.
@@ -122,14 +123,14 @@ function asyncComponent(config) {
     }
 
     componentWillMount() {
-      this.setState({ module: sharedState.module })
+      this.setState({ modules: sharedState.modules })
       if (sharedState.error) {
         this.registerErrorState(sharedState.error)
       }
     }
 
     componentDidMount() {
-      if (!this.state.module) {
+      if (!this.state.modules[getModuleId(this.props)]) {
         this.resolveModule()
       }
     }
@@ -137,6 +138,7 @@ function asyncComponent(config) {
     resolveModule() {
       this.resolving = true
 
+	  let moduleId = getModuleId(this.props);
       return getResolver(this.props)
         .then((module) => {
           if (this.unmounted) {
@@ -145,9 +147,9 @@ function asyncComponent(config) {
           if (this.context.asyncComponents) {
             this.context.asyncComponents.resolved(sharedState.id)
           }
-          sharedState.module = module
+          sharedState.modules[moduleId] = module
           if (env === 'browser') {
-            this.setState({ module })
+            this.setState({ modules:sharedState.modules })
           }
           this.resolving = false
           return module
@@ -171,6 +173,15 @@ function asyncComponent(config) {
         })
     }
 
+    componentWillReceiveProps(nextProps) {
+		console.log("module id compare", getModuleId(this.props), getModuleId(nextProps));
+		if (getModuleId(this.props) !== getModuleId(nextProps)) {
+			// FIXME add LoadingComponent logic to show old module for X ms (to prevent flash of content) and then show a loading component till the new module is loaded
+			// FIXME handle case when module id changes while resolving a module
+			this.resolveModule();
+		}
+    }
+
     componentWillUnmount() {
       this.unmounted = true
     }
@@ -189,14 +200,14 @@ function asyncComponent(config) {
     }
 
     render() {
-      const { module, error } = this.state
+      const { modules, error } = this.state
 
       // This is as workaround for React Hot Loader support.  When using
       // RHL the local component reference will be killed by any change
       // to the component, this will be our signal to know that we need to
       // re-resolve it.
       if (
-        sharedState.module == null &&
+        sharedState.module[getModuleId(this.props)] == null &&
         !this.resolving &&
         typeof window !== 'undefined'
       ) {
@@ -209,7 +220,7 @@ function asyncComponent(config) {
           : null
       }
 
-      const Component = es6Resolve(module)
+      const Component = es6Resolve(modules[getModuleId(this.props)])
       // eslint-disable-next-line no-nested-ternary
       return Component
         ? config.render ? config.render(Component) : <Component {...this.props} />
