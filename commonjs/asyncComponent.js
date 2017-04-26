@@ -38,6 +38,7 @@ function asyncComponent(config) {
       serverMode = _config$serverMode === undefined ? 'resolve' : _config$serverMode,
       LoadingComponent = config.LoadingComponent,
       ErrorComponent = config.ErrorComponent,
+      _render = config.render,
       _config$getModuleId = config.getModuleId,
       getModuleId = _config$getModuleId === undefined ? function () {
     return staticModuleId;
@@ -249,7 +250,7 @@ function asyncComponent(config) {
 
         var Component = es6Resolve(modules[getModuleId(this.props)]);
         // eslint-disable-next-line no-nested-ternary
-        return Component ? config.render ? config.render(Component) : _react2.default.createElement(Component, this.props) : LoadingComponent ? _react2.default.createElement(LoadingComponent, this.props) : null;
+        return Component ? _render ? _render(Component, this.props) : _react2.default.createElement(Component, this.props) : LoadingComponent ? _react2.default.createElement(LoadingComponent, this.props) : null;
       }
     }]);
 
