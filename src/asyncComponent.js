@@ -175,7 +175,6 @@ function asyncComponent(config) {
     }
 
     componentWillReceiveProps(nextProps) {
-		console.log("module id compare", getModuleId(this.props), getModuleId(nextProps));
 		let lastModuleId = getModuleId(this.props);
 		let nextModuleId = getModuleId(nextProps);
 		if (lastModuleId !== nextModuleId && !sharedState.modules[nextModuleId]) {
