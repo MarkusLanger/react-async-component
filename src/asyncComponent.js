@@ -175,7 +175,9 @@ function asyncComponent(config) {
 
     componentWillReceiveProps(nextProps) {
 		console.log("module id compare", getModuleId(this.props), getModuleId(nextProps));
-		if (getModuleId(this.props) !== getModuleId(nextProps)) {
+		let lastModuleId = getModuleId(this.props);
+		let nextModuleId = getModuleId(nextProps);
+		if (lastModuleId !== nextModuleId && !sharedState.modules[nextModuleId]) {
 			// FIXME add LoadingComponent logic to show old module for X ms (to prevent flash of content) and then show a loading component till the new module is loaded
 			// FIXME handle case when module id changes while resolving a module
 			this.resolveModule(nextProps);
