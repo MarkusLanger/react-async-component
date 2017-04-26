@@ -12,6 +12,7 @@ function asyncComponent(config) {
     serverMode = 'resolve',
     LoadingComponent,
     ErrorComponent,
+	render,
 	getModuleId = () => staticModuleId,
   } = config
 
@@ -224,7 +225,7 @@ function asyncComponent(config) {
       const Component = es6Resolve(modules[getModuleId(this.props)])
       // eslint-disable-next-line no-nested-ternary
       return Component
-        ? config.render ? config.render(Component) : <Component {...this.props} />
+        ? render ? render(Component, this.props) : <Component {...this.props} />
         : LoadingComponent ? <LoadingComponent {...this.props} /> : null
     }
   }
