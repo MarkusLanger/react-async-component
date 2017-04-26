@@ -65,12 +65,12 @@ function asyncComponent(config) {
     return autoResolveES2015Default && x != null && (typeof x === 'function' || (typeof x === 'undefined' ? 'undefined' : _typeof(x)) === 'object') && x.default ? x.default : x;
   };
 
-  var getResolver = function getResolver() {
+  var getResolver = function getResolver(props) {
     if (sharedState.resolver == null) {
       try {
         // Wrap whatever the user returns in Promise.resolve to ensure a Promise
         // is always returned.
-        var resolver = resolve();
+        var resolver = resolve(props);
         sharedState.resolver = Promise.resolve(resolver);
       } catch (err) {
         sharedState.resolver = Promise.reject(err);
@@ -160,7 +160,7 @@ function asyncComponent(config) {
 
         this.resolving = true;
 
-        return getResolver().then(function (module) {
+        return getResolver(this.props).then(function (module) {
           if (_this3.unmounted) {
             return undefined;
           }
