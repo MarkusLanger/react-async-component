@@ -437,8 +437,7 @@ function asyncComponent(config) {
         var lastModuleId = getModuleId(this.props);
         var nextModuleId = getModuleId(nextProps);
         if (lastModuleId !== nextModuleId && !sharedState.modules[nextModuleId]) {
-          // FIXME add LoadingComponent logic to show old module for X ms (to prevent flash of content) and then show a loading component till the new module is loaded
-          // FIXME handle case when module id changes while resolving a module
+          // FIXME add LoadingComponent logic to show old module for X ms (to prevent flash of content) and then show a loading component till the new module is loaded, make this configurable as for some cases it makes no sense to show the old content, like for icons
           this.resolveModule(nextProps);
         }
       }
