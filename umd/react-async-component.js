@@ -393,10 +393,12 @@ function asyncComponent(config) {
       value: function resolveModule() {
         var _this3 = this;
 
+        var props = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.props;
+
         this.resolving = true;
 
-        var moduleId = getModuleId(this.props);
-        return getResolver(this.props).then(function (module) {
+        var moduleId = getModuleId(props);
+        return getResolver(props).then(function (module) {
           if (_this3.unmounted) {
             return undefined;
           }
@@ -434,7 +436,7 @@ function asyncComponent(config) {
         if (getModuleId(this.props) !== getModuleId(nextProps)) {
           // FIXME add LoadingComponent logic to show old module for X ms (to prevent flash of content) and then show a loading component till the new module is loaded
           // FIXME handle case when module id changes while resolving a module
-          this.resolveModule();
+          this.resolveModule(nextProps);
         }
       }
     }, {
@@ -467,7 +469,7 @@ function asyncComponent(config) {
         // to the component, this will be our signal to know that we need to
         // re-resolve it.
 
-        if (sharedState.module[getModuleId(this.props)] == null && !this.resolving && typeof window !== 'undefined') {
+        if (sharedState.modules[getModuleId(this.props)] == null && !this.resolving && typeof window !== 'undefined') {
           this.resolveModule();
         }
 
